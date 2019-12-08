@@ -12,7 +12,7 @@ complex<double> *zeros(int num){
 int main()
 {
 	//number of interation 
-	int loop = 300;
+	int loop = 288;
 	//create an object subDev of SBE class
 	SBE *subDev=new SBE();
 	//generate object rk4 of RungKutta class
