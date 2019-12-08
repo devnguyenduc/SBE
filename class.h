@@ -1,34 +1,32 @@
 #include <iostream>
 #include <complex>
 #include "bloch.h"
-
 using namespace std;
+
 complex<double> *addVector(int dim, complex<double> *vec1, complex<double> *vec2)
 {
-	complex<double> *vec=new complex<double>;
 	for(int i=0;i<dim;i++)
 	{
-		vec[i]=vec1[i]+vec2[i];	
+		vec1[i] = vec1[i] + vec2[i];	
 	}
-	return vec;
+	return vec1;
 }
 complex<double> *matMul(int dim, double factor, complex<double> *vec) 
 {
-	complex<double> *temp=new complex<double>;
 	for(int i=0;i<dim;i++)
 	{
-		temp[i]=factor*vec[i];	
+		vec[i]=factor*vec[i];	
 	}
-	return temp;
+	return vec;
 }
 class SBE
 {
 public:
 	SBE(){}
-	complex<double> solve(int j, double t, complex<double> *nsolutions){
+	complex<double> solvex(int j, double t, complex<double> *nsolutions){
 		return solve(j,t,nsolutions);
 	}
-	~SBE(){}
+	~SBE(){ cout << "SBE is deleted!" <<endl;}
 };
 
 class RungeKutta4
@@ -47,7 +45,7 @@ public:
 		this->end=end;
 		this->loop=loop;
 		this->h=(end-start)/loop;
-		this->result = new complex<double>*[this->loop];
+		this->result = new complex<double> * [this->loop];
 		for(int i = 0; i < this->loop; i++){
 			this->result[i] = new complex<double>[N];
 		}
@@ -71,30 +69,36 @@ public:
 		for(int j=0;j<N;j++)
 		{
 			this->result[0][j]= this->solution[j];
+                       // cout << this->result[0] << "     " << this->result[0][j] << endl;
 		}
-		for(int i=1;i<this->loop;i++)
+		for(int i=1;i<10;i++)
 		{
+                        cout << this->h * i + start << endl;
 			for(int j=0;j<N;j++)
 			{
-				k1[j]=this->h*this->dev->solve(j,this->start+this->h*i,this->result[i-1]);
+				k1[j]=this->h*this->dev->solvex(j,this->start+this->h*i,this->result[i-1]);
 			}
 			for(int j=0;j<N;j++)
 			{
-				k2[j]=this->h*this->dev->solve(j,this->start+this->h*(i+1/2),addVector(N,this->result[i-1],matMul(N,0.5,k1)));
+                                complex<double> * nsolutions = addVector(N, this->result[i-1], matMul(N, 0.5, k1));
+				k2[j]=this->h*this->dev->solvex(j,this->start+this->h*(i+1/2), nsolutions);
 			};
 			
 			for(int j=0;j<N;j++)
 			{
-				k3[j]=this->h*this->dev->solve(j,this->start+this->h*(i+1/2),addVector(N,this->result[i-1],matMul(N,0.5,k2)));
+                                complex<double> * nsolutions = addVector(N, this->result[i-1], matMul(N, 0.5, k2));
+				k3[j]=this->h*this->dev->solvex(j,this->start+this->h*(i+1/2), nsolutions);
 			};
 			
 			for(int j=0;j<N;j++)
 			{
-				k4[j]=this->h*this->dev->solve(j,this->start+this->h*(i+1),addVector(N,this->result[i-1],k3));
+                                complex<double> * nsolutions = addVector(N, this->result[i-1], k3);
+				k4[j]=this->h*this->dev->solvex(j,this->start+this->h*(i+1), nsolutions);
 			};
 			for(int j=0;j<N;j++)
 			{
-				this->result[i][j]=result[i-1][j]+(k1[j]+2.0*k2[j]+2.0*k3[j]+k4[j])/6.0;
+				this->result[i][j]=this->result[i-1][j]+(k1[j]+2.0*k2[j]+2.0*k3[j]+k4[j])/6.0;
+                                cout << j <<  result[i][j] << endl;
 			}
 		}
 	delete[] k1;
